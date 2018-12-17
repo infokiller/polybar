@@ -201,10 +201,6 @@ namespace modules {
         label->replace_token("%name%", ws_name);
         label->replace_token("%icon%", icon->get());
         label->replace_token("%index%", to_string(ws->num));
-        label->replace_token("%group%", name_sections.group);
-        label->replace_token("%static_name%", name_sections.static_name);
-        label->replace_token("%dynamic_name%", name_sections.dynamic_name);
-        label->replace_token("%local_index%", to_string(name_sections.local_number));
         label->replace_token("%display_name%", create_display_name(name_sections));
 
         const int label_width = string_util::char_len(label->get());
