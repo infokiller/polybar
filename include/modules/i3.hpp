@@ -30,6 +30,10 @@ namespace modules {
        * \brief Workspace with urgency hint set
        */
       URGENT,
+      /**
+       * \brief Unfocused workspace in non active group
+       */
+      INACTIVE_GROUP,
     };
 
     struct workspace {
@@ -42,6 +46,7 @@ namespace modules {
       enum state state;
       label_t label;
     };
+
 
    public:
     explicit i3_module(const bar_settings&, string);
@@ -95,8 +100,23 @@ namespace modules {
     bool m_pinworkspaces{false};
     bool m_strip_wsnumbers{false};
     bool m_fuzzy_match{false};
+    int m_workspaces_max_count{-1};
+    int m_workspaces_max_width{-1};
 
     unique_ptr<i3_util::connection_t> m_ipc;
+
+    static constexpr const int MISSING_NUMBER = -1;
+
+    struct workspace_name_sections {
+      int global_number = MISSING_NUMBER;
+      string group = "";
+      string static_name = "";
+      string dynamic_name = "";
+      int local_number = MISSING_NUMBER;
+    };
+
+    workspace_name_sections parse_workspace_name(const string& workspace_name);
+    string create_display_name(const workspace_name_sections& name_sections);
   };
 }  // namespace modules
 

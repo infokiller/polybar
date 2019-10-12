@@ -2,6 +2,11 @@
 
 #include <sys/socket.h>
 
+#include "absl/strings/numbers.h"
+#include "absl/strings/str_join.h"
+#include "absl/strings/str_split.h"
+#include "absl/strings/string_view.h"
+#include "absl/strings/strip.h"
 #include "drawtypes/iconset.hpp"
 #include "drawtypes/label.hpp"
 #include "modules/meta/base.inl"
@@ -35,6 +40,8 @@ namespace modules {
     m_pinworkspaces = m_conf.get(name(), "pin-workspaces", m_pinworkspaces);
     m_strip_wsnumbers = m_conf.get(name(), "strip-wsnumbers", m_strip_wsnumbers);
     m_fuzzy_match = m_conf.get(name(), "fuzzy-match", m_fuzzy_match);
+    m_workspaces_max_count = m_conf.get(name(), "workspaces-max-count", m_workspaces_max_count);
+    m_workspaces_max_width = m_conf.get(name(), "workspaces-max-width", m_workspaces_max_width);
 
     m_conf.warn_deprecated(name(), "wsname-maxlen", "%name:min:max%");
 
@@ -50,6 +57,8 @@ namespace modules {
           make_pair(state::VISIBLE, load_optional_label(m_conf, name(), "label-visible", DEFAULT_WS_LABEL)));
       m_statelabels.insert(
           make_pair(state::URGENT, load_optional_label(m_conf, name(), "label-urgent", DEFAULT_WS_LABEL)));
+      m_statelabels.insert(
+          make_pair(state::INACTIVE_GROUP, load_optional_label(m_conf, name(), "label-inactive-group", DEFAULT_WS_LABEL)));
     }
 
     if (m_formatter->has(TAG_LABEL_MODE)) {
@@ -136,18 +145,38 @@ namespace modules {
       } else {
         workspaces = i3_util::workspaces(ipc);
       }
+      if (workspaces.empty()) {
+        return true;
+      }
 
       if (m_indexsort) {
         sort(workspaces.begin(), workspaces.end(), i3_util::ws_numsort);
       }
 
-      for (auto&& ws : workspaces) {
+      const string first_workspace_name = (*workspaces.begin())->name;
+      const string active_group = parse_workspace_name(first_workspace_name).group;
+
+      auto num_workspaces_shown = static_cast<int>(workspaces.size());
+      if (m_workspaces_max_count >= 0) {
+        num_workspaces_shown = std::min(num_workspaces_shown, m_workspaces_max_count);
+      }
+      int workspaces_char_width = 0;
+
+      for (int i = 0; i < num_workspaces_shown; ++i) {
+        const auto& ws = workspaces[i];
+        const auto name_sections = parse_workspace_name(ws->name);
+        if (ws->num != name_sections.global_number) {
+          m_log.warn("Mismatched workspace global number: %d vs %d", ws->num, name_sections.global_number);
+        }
+
         state ws_state{state::NONE};
 
         if (ws->focused) {
           ws_state = state::FOCUSED;
         } else if (ws->urgent) {
           ws_state = state::URGENT;
+        } else if (name_sections.group != active_group) {
+          ws_state = state::INACTIVE_GROUP;
         } else if (ws->visible) {
           ws_state = state::VISIBLE;
         } else {
@@ -172,6 +201,21 @@ namespace modules {
         label->replace_token("%name%", ws_name);
         label->replace_token("%icon%", icon->get());
         label->replace_token("%index%", to_string(ws->num));
+        label->replace_token("%group%", name_sections.group);
+        label->replace_token("%static_name%", name_sections.static_name);
+        label->replace_token("%dynamic_name%", name_sections.dynamic_name);
+        label->replace_token("%local_index%", to_string(name_sections.local_number));
+        label->replace_token("%display_name%", create_display_name(name_sections));
+
+        const int label_width = string_util::char_len(label->get());
+        if (label_width == 0) {
+          continue;
+        }
+        if (m_workspaces_max_width >= 0 && workspaces_char_width + label_width > m_workspaces_max_width) {
+          break;
+        }
+        workspaces_char_width += label_width;
+
         m_workspaces.emplace_back(factory_util::unique<workspace>(ws->name, ws_state, move(label)));
       }
 
@@ -265,6 +309,44 @@ namespace modules {
 
   string i3_module::make_workspace_command(const string& workspace) {
     return "workspace \"" + workspace + "\"";
+  }
+
+  constexpr const auto g_SECTIONS_DELIM = u8"\u200b";
+
+  i3_module::workspace_name_sections i3_module::parse_workspace_name(const string& workspace_name) {
+    workspace_name_sections result;
+    const vector<string> sections = absl::StrSplit(workspace_name, g_SECTIONS_DELIM);
+    if (sections.size() != 5) {
+      result.static_name = workspace_name;
+      return result;
+    }
+    (void)absl::SimpleAtoi(absl::StripSuffix(sections[0], ":"), &result.global_number);
+    result.group = std::string(absl::StripSuffix(sections[1], ":"));
+    result.static_name = std::string(absl::StripPrefix(sections[2], ":"));
+    result.dynamic_name = std::string(absl::StripPrefix(sections[3], ":"));
+    (void)absl::SimpleAtoi(absl::StripPrefix(sections[4], ":"), &result.local_number);
+    m_log.trace(
+        "%s: Workspace name sections parsed: global_number=%d, group=%s, static_name=%s, dynamic_name=%s, "
+        "local_number=%d",
+        name(), result.global_number, result.group, result.static_name, result.dynamic_name, result.local_number);
+    return result;
+  }
+
+  string i3_module::create_display_name(const i3_module::workspace_name_sections& name_sections) {
+    vector<string> components;
+    if (!name_sections.group.empty()) {
+      components.push_back(name_sections.group);
+    }
+    if (!name_sections.static_name.empty()) {
+      components.push_back(name_sections.static_name);
+    }
+    if (!name_sections.dynamic_name.empty()) {
+      components.push_back(name_sections.dynamic_name);
+    }
+    if (name_sections.local_number != MISSING_NUMBER) {
+      components.push_back(to_string(name_sections.local_number));
+    }
+    return absl::StrJoin(components, ":");
   }
 }  // namespace modules
 
