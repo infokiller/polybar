@@ -135,75 +135,17 @@ namespace modules {
       return true;
     }
     m_workspaces.clear();
-    i3_util::connection_t ipc;
-
     try {
-      vector<shared_ptr<i3_util::workspace_t>> workspaces;
-
-      if (m_pinworkspaces) {
-        workspaces = i3_util::workspaces(ipc, m_bar.monitor->name);
-      } else {
-        workspaces = i3_util::workspaces(ipc);
-      }
-      if (workspaces.empty()) {
-        return true;
-      }
-
-      if (m_indexsort) {
-        sort(workspaces.begin(), workspaces.end(), i3_util::ws_numsort);
-      }
-
-      const string first_workspace_name = (*workspaces.begin())->name;
-      const string active_group = parse_workspace_name(first_workspace_name).group;
-
-      auto num_workspaces_shown = static_cast<int>(workspaces.size());
+      vector<unique_ptr<workspace>> all_workspaces = get_workspaces();
+      auto num_workspaces_shown = static_cast<int>(all_workspaces.size());
       if (m_workspaces_max_count >= 0) {
         num_workspaces_shown = std::min(num_workspaces_shown, m_workspaces_max_count);
       }
       int workspaces_char_width = 0;
 
       for (int i = 0; i < num_workspaces_shown; ++i) {
-        const auto& ws = workspaces[i];
-        const auto name_sections = parse_workspace_name(ws->name);
-        if (ws->num != name_sections.global_number) {
-          m_log.warn("Mismatched workspace global number: %d vs %d", ws->num, name_sections.global_number);
-        }
-
-        state ws_state{state::NONE};
-
-        if (ws->focused) {
-          ws_state = state::FOCUSED;
-        } else if (ws->urgent) {
-          ws_state = state::URGENT;
-        } else if (name_sections.group != active_group) {
-          ws_state = state::INACTIVE_GROUP;
-        } else if (ws->visible) {
-          ws_state = state::VISIBLE;
-        } else {
-          ws_state = state::UNFOCUSED;
-        }
-
-        string ws_name{ws->name};
-
-        // Remove workspace numbers "0:"
-        if (m_strip_wsnumbers) {
-          ws_name.erase(0, string_util::find_nth(ws_name, 0, ":", 1) + 1);
-        }
-
-        // Trim leading and trailing whitespace
-        ws_name = string_util::trim(move(ws_name), ' ');
-
-        auto icon = m_icons->get(ws->name, DEFAULT_WS_ICON, m_fuzzy_match);
-        auto label = m_statelabels.find(ws_state)->second->clone();
-
-        label->reset_tokens();
-        label->replace_token("%output%", ws->output);
-        label->replace_token("%name%", ws_name);
-        label->replace_token("%icon%", icon->get());
-        label->replace_token("%index%", to_string(ws->num));
-        label->replace_token("%display_name%", create_display_name(name_sections));
-
-        const int label_width = string_util::char_len(label->get());
+        auto& ws = all_workspaces[i];
+        const int label_width = string_util::char_len(ws->label->get());
         if (label_width == 0) {
           continue;
         }
@@ -212,9 +154,8 @@ namespace modules {
         }
         workspaces_char_width += label_width;
 
-        m_workspaces.emplace_back(factory_util::unique<workspace>(ws->name, ws_state, move(label)));
+        m_workspaces.emplace_back(std::move(ws));
       }
-
       return true;
     } catch (const exception& err) {
       m_log.err("%s: %s", name(), err.what());
@@ -343,6 +284,74 @@ namespace modules {
       components.push_back(to_string(name_sections.local_number));
     }
     return absl::StrJoin(components, ":");
+  }
+
+  vector<unique_ptr<i3_module::workspace>> i3_module::get_workspaces() {
+    vector<shared_ptr<i3_util::workspace_t>> i3_workspaces;
+    i3_util::connection_t ipc;
+
+    if (m_pinworkspaces) {
+      i3_workspaces = i3_util::workspaces(ipc, m_bar.monitor->name);
+    } else {
+      i3_workspaces = i3_util::workspaces(ipc);
+    }
+
+    if (m_indexsort) {
+      sort(i3_workspaces.begin(), i3_workspaces.end(), i3_util::ws_numsort);
+    }
+
+    const string first_workspace_name = (*i3_workspaces.begin())->name;
+    const string active_group = parse_workspace_name(first_workspace_name).group;
+
+    vector<unique_ptr<workspace>> workspaces;
+    for (size_t i = 0; i < i3_workspaces.size(); ++i) {
+      const auto& ws = i3_workspaces[i];
+      const auto name_sections = parse_workspace_name(ws->name);
+      if (ws->num != name_sections.global_number) {
+        m_log.warn("Mismatched workspace global number: %d vs %d", ws->num, name_sections.global_number);
+      }
+
+      state ws_state{state::NONE};
+
+      if (ws->focused) {
+        ws_state = state::FOCUSED;
+      } else if (ws->urgent) {
+        ws_state = state::URGENT;
+      } else if (name_sections.group != active_group) {
+        ws_state = state::INACTIVE_GROUP;
+      } else if (ws->visible) {
+        ws_state = state::VISIBLE;
+      } else {
+        ws_state = state::UNFOCUSED;
+      }
+
+      string ws_name{ws->name};
+
+      // Remove workspace numbers "0:"
+      if (m_strip_wsnumbers) {
+        ws_name.erase(0, string_util::find_nth(ws_name, 0, ":", 1) + 1);
+      }
+      // Trim leading and trailing whitespace
+      ws_name = string_util::trim(move(ws_name), ' ');
+
+      auto icon = m_icons->get(ws->name, DEFAULT_WS_ICON, m_fuzzy_match);
+      auto label = m_statelabels.find(ws_state)->second->clone();
+
+      label->reset_tokens();
+      label->replace_token("%output%", ws->output);
+      label->replace_token("%name%", ws_name);
+      label->replace_token("%icon%", icon->get());
+      label->replace_token("%index%", to_string(ws->num));
+      label->replace_token("%display_name%", create_display_name(name_sections));
+
+      const int label_width = string_util::char_len(label->get());
+      if (label_width == 0) {
+        continue;
+      }
+
+      m_workspaces.emplace_back(factory_util::unique<workspace>(ws->name, ws_state, move(label)));
+    }
+    return workspaces;
   }
 }  // namespace modules
 

@@ -117,6 +117,7 @@ namespace modules {
 
     workspace_name_sections parse_workspace_name(const string& workspace_name);
     string create_display_name(const workspace_name_sections& name_sections);
+    vector<unique_ptr<workspace>> get_workspaces();
   };
 }  // namespace modules
 
