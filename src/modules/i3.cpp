@@ -349,7 +349,7 @@ namespace modules {
         continue;
       }
 
-      m_workspaces.emplace_back(factory_util::unique<workspace>(ws->name, ws_state, move(label)));
+      workspaces.emplace_back(factory_util::unique<workspace>(ws->name, ws_state, move(label)));
     }
     return workspaces;
   }
