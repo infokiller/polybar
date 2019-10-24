@@ -31,9 +31,13 @@ namespace modules {
        */
       URGENT,
       /**
-       * \brief Unfocused workspace in non active group
+       * \brief Unfocused workspace in an inactive group
        */
       INACTIVE_GROUP,
+      /**
+       * \brief Dummy workspace to show ellipsis when the workspaces don't fit
+       */
+      DUMMY_ELLIPSIS,
     };
 
     struct workspace {
@@ -118,6 +122,7 @@ namespace modules {
     workspace_name_sections parse_workspace_name(const string& workspace_name);
     string create_display_name(const workspace_name_sections& name_sections);
     vector<unique_ptr<workspace>> get_workspaces();
+    size_t get_num_fitting_workspaces(const vector<unique_ptr<workspace>>& workspaces);
   };
 }  // namespace modules
 
