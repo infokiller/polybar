@@ -75,6 +75,9 @@ namespace modules {
 
    private:
     static string make_workspace_command(const string& workspace);
+    vector<unique_ptr<workspace>> get_workspaces();
+    size_t get_num_fitting_workspaces(const vector<unique_ptr<workspace>>& workspaces);
+    unique_ptr<workspace> create_ellipsis_workspace();
 
     static constexpr const char* DEFAULT_TAGS{"<label-state> <label-mode>"};
     static constexpr const char* DEFAULT_MODE{"default"};
@@ -118,11 +121,8 @@ namespace modules {
       string dynamic_name = "";
       int local_number = MISSING_NUMBER;
     };
-
     workspace_name_sections parse_workspace_name(const string& workspace_name);
     string create_display_name(const workspace_name_sections& name_sections);
-    vector<unique_ptr<workspace>> get_workspaces();
-    size_t get_num_fitting_workspaces(const vector<unique_ptr<workspace>>& workspaces);
   };
 }  // namespace modules
 
