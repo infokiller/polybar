@@ -143,12 +143,16 @@ if(BUILD_LIBPOLY)
 
   # Target poly {{{
   add_library(poly STATIC EXCLUDE_FROM_ALL ${POLY_SOURCES})
-  target_include_directories(poly PUBLIC ${includes_dir})
+  get_target_property(_absl_includes absl::strings INCLUDE_DIRECTORIES)
+  message(STATUS "absl includes: ${_absl_includes}")
+  target_include_directories(poly PUBLIC ${includes_dir} ${_absl_includes})
   target_link_libraries(poly PUBLIC
     Threads::Threads
     Cairo::CairoFC
     moodycamel
     xpp
+    absl::base
+    absl::strings
     $<$<TARGET_EXISTS:i3ipc++>:i3ipc++>
     $<$<TARGET_EXISTS:ALSA::ALSA>:ALSA::ALSA>
     $<$<TARGET_EXISTS:CURL::libcurl>:CURL::libcurl>
