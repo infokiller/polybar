@@ -277,7 +277,7 @@ namespace modules {
   void i3_module::focus_direction(bool next) {
     const i3_util::connection_t conn{};
 
-    auto workspaces = i3_util::workspaces(ipc, m_bar.monitor->name);
+    auto workspaces = i3_util::workspaces(conn, m_bar.monitor->name);
     auto current_ws = std::find_if(workspaces.begin(), workspaces.end(), [](auto ws) { return ws->visible; });
 
     if (current_ws == workspaces.end()) {
