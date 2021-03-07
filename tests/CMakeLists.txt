@@ -63,6 +63,8 @@ add_unit_test(drawtypes/label)
 add_unit_test(drawtypes/ramp)
 add_unit_test(drawtypes/iconset)
 add_unit_test(tags/parser)
+add_unit_test(tags/dispatch)
+add_unit_test(tags/action_context)
 
 # Run make check to build and run all unit tests
 add_custom_target(check

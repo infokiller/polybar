@@ -50,6 +50,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   repository.
 
 ### Added
+- Option to always show urgent windows in i3 module when `pin-workspace` is active
+  ([`2374`](https://github.com/polybar/polybar/issues/2374))
 - `internal/xworkspaces`: `reverse-scroll` can be used to reverse the scroll
   direction when cycling through desktops.
 - The backslash escape character (\\).
@@ -63,6 +65,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `internal/cpu`: `format-warn`, `label-warn`, `warn-percentage = 80`
   - `internal/fs`: `format-warn`, `label-warn`, `warn-percentage = 90`
   - `internal/memory`: `format-warn`, `label-warn`, `warn-percentage = 90`
+- `radius` now affects the bar border as well
+  ([`#1566`](https://github.com/polybar/polybar/issues/1566))
 - Per-corner corner radius with `radius-{bottom,top}-{left,right}`
   ([`#2294`](https://github.com/polybar/polybar/issues/2294))
 - `internal/network`: `speed-unit = B/s` can be used to customize how network
@@ -85,6 +89,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `internal/xworkspaces`: `%nwin%` can be used to display the number of open
   windows per workspace
   ([`#604`](https://github.com/polybar/polybar/issues/604))
+- `internal/backlight`: added `use-actual-brightness` option
 
 ### Changed
 - Slight changes to the value ranges the different ramp levels are responsible
@@ -104,6 +109,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ([`#2292`](https://github.com/polybar/polybar/issues/2292))
 - Parser error if click command contained `}`
   ([`#2040`](https://github.com/polybar/polybar/issues/2040))
+- Slight imprecision when calculating percentages. This caused the volume
+  reported by alsa to be off by one.
+  ([`#2399`](https://github.com/polybar/polybar/issues/2399))
+- `internal/backlight`: With amdgpu backlights, the brightness indicator was slightly behind.
+  ([`#2367](https://github.com/polybar/polybar/issues/2367))
+
+## [3.5.5] - 2021-03-01
+### Build
+- Support older python sphinx versions again ([`#2356`](https://github.com/polybar/polybar/issues/2356))
 
 ## [3.5.4] - 2021-01-07
 ### Fixed
@@ -115,6 +129,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Empty color values are no longer treated as invalid and no longer produce an error.
 
-[Unreleased]: https://github.com/polybar/polybar/compare/3.5.4...HEAD
+[Unreleased]: https://github.com/polybar/polybar/compare/3.5.5...HEAD
+[3.5.5]: https://github.com/polybar/polybar/releases/tag/3.5.5
 [3.5.4]: https://github.com/polybar/polybar/releases/tag/3.5.4
 [3.5.3]: https://github.com/polybar/polybar/releases/tag/3.5.3

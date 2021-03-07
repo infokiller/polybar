@@ -38,6 +38,7 @@ namespace modules {
     m_wrap = m_conf.get(name(), "wrapping-scroll", m_wrap);
     m_indexsort = m_conf.get(name(), "index-sort", m_indexsort);
     m_pinworkspaces = m_conf.get(name(), "pin-workspaces", m_pinworkspaces);
+    m_show_urgent = m_conf.get(name(), "show-urgent", m_show_urgent);
     m_strip_wsnumbers = m_conf.get(name(), "strip-wsnumbers", m_strip_wsnumbers);
     m_fuzzy_match = m_conf.get(name(), "fuzzy-match", m_fuzzy_match);
     m_workspaces_max_count = m_conf.get(name(), "workspaces-max-count", m_workspaces_max_count);
@@ -276,7 +277,7 @@ namespace modules {
   void i3_module::focus_direction(bool next) {
     const i3_util::connection_t conn{};
 
-    auto workspaces = i3_util::workspaces(conn, m_bar.monitor->name);
+    auto workspaces = i3_util::workspaces(ipc, m_bar.monitor->name);
     auto current_ws = std::find_if(workspaces.begin(), workspaces.end(), [](auto ws) { return ws->visible; });
 
     if (current_ws == workspaces.end()) {
@@ -348,7 +349,7 @@ namespace modules {
     i3_util::connection_t ipc;
 
     if (m_pinworkspaces) {
-      i3_workspaces = i3_util::workspaces(ipc, m_bar.monitor->name);
+      i3_workspaces = i3_util::workspaces(ipc, m_bar.monitor->name, m_show_urgent);
     } else {
       i3_workspaces = i3_util::workspaces(ipc);
     }
