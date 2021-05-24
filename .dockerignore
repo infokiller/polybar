@@ -1,0 +1,19 @@
+# Exclude docker related files so that the docker layer cache won't be
+# invalidated when editing them because the build context changes.
+Dockerfile
+.dockerignore
+.git
+*.md
+
+# Copied from gitignore
+/build
+/tags
+/compile_commands.json
+*.bak
+*.pyc
+*.swp
+*.tmp
+.tags
+
+polybar-*.tar
+.idea/

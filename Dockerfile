@@ -1,4 +1,4 @@
-FROM debian:testing
+FROM debian:testing as build-stage
 ARG DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update -y && apt-get install -y \
@@ -31,11 +31,13 @@ RUN apt-get update -y && apt-get install -y \
   libcurl4-openssl-dev \
   libnl-genl-3-dev
 
-COPY . /polybar
-WORKDIR /polybar
-RUN rm -rf build; exit 0
-RUN mkdir -p build
-WORKDIR build
+# Create an unprivileged user
+RUN useradd --create-home --user-group user
+USER user
+COPY --chown=user . /app
+WORKDIR /app
+RUN mkdir /app/build
+WORKDIR /app/build
 RUN cmake \
   -DENABLE_I3=ON \
   -DENABLE_ALSA=ON \
@@ -48,4 +50,5 @@ RUN cmake \
   ..
 RUN make
 
-ENTRYPOINT ["/polybar/build/bin/polybar"]
+FROM scratch AS export-stage
+COPY --from=build-stage /app/build/bin/polybar /
