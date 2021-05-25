@@ -12,7 +12,6 @@ flags = [
     '-Iinclude',
     '-Ilib/concurrentqueue/include',
     '-Ilib/i3ipcpp/include',
-    '-Ilib/abseil-cpp',
     '-Ilib/xpp/include',
     '-Itests',
 

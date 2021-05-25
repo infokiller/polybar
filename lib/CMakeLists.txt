@@ -8,12 +8,6 @@ add_library(moodycamel INTERFACE)
 target_include_directories(moodycamel SYSTEM INTERFACE ${CMAKE_CURRENT_LIST_DIR}/concurrentqueue/include)
 
 # }}}
-# Library: abseil-cpp {{{
-cmake_minimum_required(VERSION 3.5)
-add_subdirectory(abseil-cpp)
-list(APPEND libs absl::base absl::strings)
-
-# }}}
 # Library: xpp {{{
 
 set(XCB_PROTOS xproto)

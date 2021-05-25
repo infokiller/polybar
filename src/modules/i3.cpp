@@ -2,11 +2,6 @@
 
 #include <sys/socket.h>
 
-#include "absl/strings/numbers.h"
-#include "absl/strings/str_join.h"
-#include "absl/strings/str_split.h"
-#include "absl/strings/string_view.h"
-#include "absl/strings/strip.h"
 #include "drawtypes/iconset.hpp"
 #include "drawtypes/label.hpp"
 #include "modules/meta/base.inl"
@@ -14,6 +9,49 @@
 #include "utils/file.hpp"
 
 POLYBAR_NS
+
+namespace {
+
+  std::vector<std::string> StrSplit(const std::string& s, const std::string& delim) {
+    std::vector<std::string> result;
+    std::size_t pos = 0;
+    while (pos < s.size()) {
+      auto delim_pos = s.find(delim, pos);
+      result.push_back(s.substr(pos, std::min(delim_pos, s.size()) - pos));
+      if (delim_pos == std::string::npos) {
+        break;
+      }
+      pos = delim_pos + delim.size();
+    }
+    return result;
+  }
+
+  std::string StrJoin(const vector<string>& parts, const std::string& delim) {
+    std::stringstream result;
+    for (auto p = parts.begin(); p != parts.end(); ++p) {
+      result << *p;
+      if (p != parts.end() - 1) {
+        result << delim;
+      }
+    }
+    return result.str();
+  }
+
+  std::string StripPrefix(const std::string& s, char prefix) {
+    if (s.size() > 0 && s[0] == prefix) {
+      return s.substr(1);
+    }
+    return s;
+  }
+
+  std::string StripSuffix(const std::string& s, char suffix) {
+    if (s.size() > 0 && s[s.size() - 1] == suffix) {
+      return s.substr(0, s.size() - 1);
+    }
+    return s;
+  }
+
+}  // namespace
 
 namespace modules {
   template class module<i3_module>;
@@ -310,16 +348,16 @@ namespace modules {
 
   i3_module::workspace_name_sections i3_module::parse_workspace_name(const string& workspace_name) {
     workspace_name_sections result;
-    const vector<string> sections = absl::StrSplit(workspace_name, g_SECTIONS_DELIM);
+    const vector<string> sections = StrSplit(workspace_name, g_SECTIONS_DELIM);
     if (sections.size() != 5) {
       result.static_name = workspace_name;
       return result;
     }
-    (void)absl::SimpleAtoi(absl::StripSuffix(sections[0], ":"), &result.global_number);
-    result.group = std::string(absl::StripSuffix(sections[1], ":"));
-    result.static_name = std::string(absl::StripPrefix(sections[2], ":"));
-    result.dynamic_name = std::string(absl::StripPrefix(sections[3], ":"));
-    (void)absl::SimpleAtoi(absl::StripPrefix(sections[4], ":"), &result.local_number);
+    result.global_number = std::stoi(StripSuffix(sections[0], ':'));
+    result.group = StripSuffix(sections[1], ':');
+    result.static_name = StripPrefix(sections[2], ':');
+    result.dynamic_name = StripPrefix(sections[3], ':');
+    result.local_number = std::stoi(StripPrefix(sections[4], ':'));
     m_log.trace(
         "%s: Workspace name sections parsed: global_number=%d, group=%s, static_name=%s, dynamic_name=%s, "
         "local_number=%d",
@@ -341,7 +379,7 @@ namespace modules {
     if (name_sections.local_number != MISSING_NUMBER) {
       components.push_back(to_string(name_sections.local_number));
     }
-    return absl::StrJoin(components, ":");
+    return StrJoin(components, ":");
   }
 
   vector<unique_ptr<i3_module::workspace>> i3_module::get_workspaces() {
