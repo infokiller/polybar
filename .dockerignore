@@ -13,6 +13,7 @@ Dockerfile
 *.pyc
 *.swp
 *.tmp
+.cache
 .tags
 
 polybar-*.tar

@@ -5,6 +5,7 @@
 *.pyc
 *.swp
 *.tmp
+.cache
 .tags
 
 polybar-*.tar
