@@ -1,4 +1,5 @@
 # Changelog
+
 All notable changes to this project will be documented in this file.
 Each release should have the following subsections, if entries exist, in the
 given order: `Breaking`, `Build`, `Deprecated`, `Removed`, `Added`, `Changed`,
@@ -119,7 +120,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   reported by alsa to be off by one.
   ([`#2399`](https://github.com/polybar/polybar/issues/2399))
 - `internal/backlight`: With amdgpu backlights, the brightness indicator was slightly behind.
-  ([`#2367](https://github.com/polybar/polybar/issues/2367))
+  ([`#2367`](https://github.com/polybar/polybar/issues/2367))
+- Warning message regarding T@ in bspwm module
+  ([`#2371`](https://github.com/polybar/polybar/issues/2371))
+
+## [3.5.6] - 2021-05-24
+### Build
+- Support building documentation on sphinx 4.0 ([`#2424`](https://github.com/polybar/polybar/issues/2424))
+### Fixed
+- Tray icons sometimes appears outside of bar ([`#2430`](https://github.com/polybar/polybar/issues/2430), [`#1679`](https://github.com/polybar/polybar/issues/1679))
+- Crash in the i3 module ([`#2416`](https://github.com/polybar/polybar/issues/2416))
 
 ## [3.5.5] - 2021-03-01
 ### Build
@@ -135,7 +145,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Empty color values are no longer treated as invalid and no longer produce an error.
 
-[Unreleased]: https://github.com/polybar/polybar/compare/3.5.5...HEAD
+[Unreleased]: https://github.com/polybar/polybar/compare/3.5.6...HEAD
+[3.5.6]: https://github.com/polybar/polybar/releases/tag/3.5.6
 [3.5.5]: https://github.com/polybar/polybar/releases/tag/3.5.5
 [3.5.4]: https://github.com/polybar/polybar/releases/tag/3.5.4
 [3.5.3]: https://github.com/polybar/polybar/releases/tag/3.5.3
