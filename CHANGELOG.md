@@ -49,6 +49,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The sample config file is now placed in the `generated-sources` folder inside
   whatever folder you invoked `cmake` from instead of in the root folder of the
   repository.
+- The `POLYBAR_FLAGS` cmake variable can be used to pass extra C++ compiler flags.
 
 ### Added
 - Option to always show urgent windows in i3 module when `pin-workspace` is active
@@ -76,11 +77,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ([`#316`](https://github.com/polybar/polybar/issues/316))
 - Added .ini extension check to the default config search.
   ([`#2323`](https://github.com/polybar/polybar/issues/2323))
-- IPC commands to change visibility of modules
-  (`hide.<name>`, `show.<name>`, and `toggle.<name>`)
-  ([`#2108`](https://github.com/polybar/polybar/issues/2108))
 - Config option to hide a certain module
   (`hidden = false`)
+  ([`#2108`](https://github.com/polybar/polybar/issues/2108))
+- Actions to control visibility of modules
+  (`module_toggle`, `module_show`, and `module_hide`)
   ([`#2108`](https://github.com/polybar/polybar/issues/2108))
 - `internal/xworkspaces`: Make the urgent hint persistent
   ([`#1081`](https://github.com/polybar/polybar/issues/1081))
@@ -97,6 +98,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added `occupied-scroll = true` option to bspwm module.
   Allows scrolling only through occupied desktops only.
   ([`#2427`](https://github.com/polybar/polybar/issues/2427))
+- `custom/ipc`: `send` action to send arbitrary strings to be displayed in the module.
+  ([`#2455`](https://github.com/polybar/polybar/issues/2455))
 
 ### Changed
 - Slight changes to the value ranges the different ramp levels are responsible
